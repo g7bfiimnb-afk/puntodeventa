@@ -1,48 +1,45 @@
 <?php
-
-if($peticionAjax){
-    require_once "../modelo/VentaModelo.php";
+if(isset($peticionAjax) && $peticionAjax){
+    require_once "../modelo/ProductoModelo.php";
+    // require_once "../modelo/VentaModelo.php"; // Lo activaremos al cobrar
 }else{
-    require_once "./modelo/VentaModelo.php";
+    require_once "./modelo/ProductoModelo.php";
 }
 
-class VentaControlador extends VentaModelo {
+class VentaControlador extends ProductoModelo {
 
     /**
-     * Controlador para buscar producto y agregarlo a la venta
+     * Busca un producto por código de barras para añadirlo al carrito
      */
-    public function buscar_producto_controlador($codigo) {
-        
-        // Limpiamos el código para evitar carácteres extraños
+    public function buscar_producto_venta_controlador($codigo) {
         $codigo = trim($codigo);
+
+        // Usamos una consulta simple para traer el producto
+        $db = Conexion::conectar();
+        $sql = $db->prepare("SELECT id, nombre, precio_venta, stock FROM productos WHERE codigo_barras = :codigo LIMIT 1");
+        $sql->bindParam(":codigo", $codigo);
+        $sql->execute();
         
-        if($codigo == ""){
-            return json_encode(["res" => "error", "msj" => "El código está vacío"]);
-        }
+        $producto = $sql->fetch(PDO::FETCH_ASSOC);
 
-        // Llamamos al modelo (heredado de VentaModelo)
-        $respuesta = parent::buscar_producto_modelo($codigo);
-
-        if($respuesta) {
-            // Si el producto existe, lo devolvemos como JSON
-            return json_encode([
-                "res" => "success",
-                "datos" => $respuesta
-            ]);
+        if($producto) {
+            // Verificamos si hay stock disponible
+            if($producto['stock'] > 0) {
+                return json_encode([
+                    "res" => "success",
+                    "data" => $producto
+                ]);
+            } else {
+                return json_encode([
+                    "res" => "error",
+                    "msj" => "Producto sin inventario (Stock: 0)"
+                ]);
+            }
         } else {
-            // Si no existe o no hay stock
             return json_encode([
-                "res" => "error", 
-                "msj" => "Producto no encontrado o sin existencias"
+                "res" => "error",
+                "msj" => "Producto no encontrado"
             ]);
         }
-    }
-
-    /**
-     * Generador de folios para la tiendita (Ej: V-0001)
-     */
-    public function generar_folio_controlador() {
-        // Aquí podrías consultar la última venta y sumarle 1
-        return "V-" . date("is"); 
     }
 }

@@ -1,121 +1,45 @@
-<<<<<<< HEAD
-<div class="jumbotron jumbotron-fluid bg-white shadow-sm border rounded">
-  <div class="container">
-    <h1 class="display-4 text-primary">Bienvenido, <?php echo $_SESSION['usuario_nombre']; ?></h1>
-    <p class="lead">Este es el resumen de tu tiendita para el día de hoy.</p>
-    <hr class="my-4">
-    <div class="row text-center">
-        <div class="col-md-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Ventas de Hoy</div>
-                    <div class="h5 mb-0 font-weight-bold text-gray-800">$0.00</div>
-                </div>
-            </div>
-        </div>
-        </div>
-  </div>
-</div>
-=======
-<?php
-session_start();
-
-// Procesar cierre de sesión (se sigue usando GET para no romper el
-// flujo existente; se podría mejorar a POST en el futuro)
-if (isset($_GET['logout'])) {
-    session_unset();
-    session_destroy();
-    // también eliminamos la cookie de sesión para asegurarnos de que no
-    // pueda reutilizarse accidentalmente en la siguiente petición.
-    if (isset($_COOKIE[session_name()])) {
-        setcookie(session_name(), '', time() - 42000, '/');
-    }
-    // regresar al punto de entrada principal
-    header('Location: /ControlDeMaestros/');
-    exit;
-}
-
-// Redirección automática si ya hay sesión activa
-// Antes enviábamos a index.php pero eso generaba un bucle cuando
-// el controlador reincorporaba este archivo. Ahora apuntamos
-// directamente al dashboard correspondiente usando rutas absolutas.
-if (!empty($_SESSION['maestro'])) {
-    if (!empty($_SESSION['maestro']['admin'])) {
-        header('Location: /ControlDeMaestros/vistas/pantallas/admin');
-    } else {
-        header('Location: /ControlDeMaestros/vistas/pantallas/maestro-dashboard');
-    }
-    exit;
-}
-
-require_once $_SERVER['DOCUMENT_ROOT'] . '/ControlDeMaestros/controladores/maestroControlador.php';
-
-$errorLogin = '';
-
-// Procesar inicio de sesión
-if (isset($_POST['login'])) {
-    // Sanitizamos ligeramente las entradas (el controlador se encargará
-    // de normalizar la CURP). No convertimos aquí a mayúsculas para que
-    // el administrador pueda iniciar sesión con la palabra "admin" sin
-    // que se transforme en "ADMIN".
-    $correo = trim($_POST['correo'] ?? '');
-    $curp   = trim($_POST['curp'] ?? '');
-    
-    $user = MaestroControlador::ctrLogin($correo, $curp);
-    
-    if ($user) {
-        $_SESSION['maestro'] = $user;
-        // Redirigimos directamente al dashboard correspondiente para
-        // evitar una segunda petición innecesaria.
-        if (!empty($user['admin'])) {
-            header('Location: /ControlDeMaestros/vistas/pantallas/admin');
-        } else {
-            header('Location: /ControlDeMaestros/vistas/pantallas/maestro-dashboard');
-        }
-        exit;
-    } else {
-        $errorLogin = 'Credenciales inválidas. Si no está registrado, contacte al administrador.';
-    }
-}
-?>
-
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Inicio de Sesión - Sistema Escolar</title>
-    <base href="/ControlDeMaestros/"> 
-
-    <link rel="stylesheet" href="/ControlDeMaestros/vistas/css/inicio.css">
-    <link rel="stylesheet" href="/ControlDeMaestros/vistas/css/maestros.css">
-</head>
-<body>
-
-    <div class="layout">
-        <div class="contenido">
-            <h2>🎓 Inicio de Sesión</h2>
+<div class="container-fluid">
+    <div class="jumbotron jumbotron-fluid bg-white shadow-sm border rounded p-4">
+        <div class="container">
+            <h1 class="display-4 text-primary">
+                <i class="fas fa-store"></i> ¡Bienvenido, <?php echo $_SESSION['usuario_nombre']; ?>!
+            </h1>
+            <p class="lead">Panel de control de Abarrotes "Mi Tiendita".</p>
+            <hr class="my-4">
             
-            <?php if ($errorLogin): ?>
-                <p class="error"><?php echo htmlspecialchars($errorLogin, ENT_QUOTES, 'UTF-8'); ?></p>
-            <?php endif; ?>
-
-            <div class="forms-container">
-                <div class="form-wrapper">
-                    <form action="" method="POST" class="form-login">
-                        <input type="email" name="correo" placeholder="Correo electrónico" required>
-                        <input type="text" name="curp" placeholder="CURP" required maxlength="18" minlength="18" style="text-transform: uppercase;"> <!-- el estilo sigue forzando mayúsculas en pantalla -->
-                        <button type="submit" name="login">Iniciar sesión</button>
-                    </form>
+            <div class="row text-center">
+                <div class="col-md-4 mb-3">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Ventas de Hoy</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">$ 0.00</div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="register-prompt">
-                    <p><strong>¿Es administrador?</strong> Ingrese sus credenciales de administrador.</p>
-                    <p><strong>¿Es maestro?</strong> Ingrese su correo y CURP registrados.</p>
+                <div class="col-md-4 mb-3">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Productos Registrados</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                <?php 
+                                    // Conexión rápida solo para mostrar el número de productos
+                                    require_once "configuracion/conexiones.php";
+                                    $db = Conexion::conectar();
+                                    $total = $db->query("SELECT count(*) FROM productos")->fetchColumn();
+                                    echo $total;
+                                ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <a href="index.php?p=ventas" class="btn btn-primary btn-block p-3 shadow-sm">
+                        <i class="fas fa-shopping-cart fa-2x"></i><br>Ir a Caja de Cobro
+                    </a>
                 </div>
             </div>
         </div>
     </div>
-
-</body>
-</html>
->>>>>>> 38716f63c4cfb36a34aec3b6a9c098951b990f95
+</div>
