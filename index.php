@@ -58,7 +58,7 @@ if($vista == "dashboard"){
             color: white;
         }
         .list-group-item.active {
-            background-color: #007bff !important;
+            background-color: #dc4ad2 !important;
             color: white !important;
         }
         .list-group-item i { margin-right: 10px; width: 20px; text-align: center; }
@@ -72,7 +72,7 @@ if($vista == "dashboard"){
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #007bff 0%, #004a99 100%);
+            background: linear-gradient(135deg, #313b45 0%, #161b21 100%);
         }
     </style>
 </head>
@@ -84,8 +84,8 @@ if($vista == "dashboard"){
         <div class="card shadow-lg" style="width: 380px; border-radius: 15px;">
             <div class="card-body p-5">
                 <div class="text-center mb-4">
-                    <i class="fas fa-store-alt fa-4x text-primary"></i>
-                    <h4 class="mt-3">Abarrotes "Mi Tiendita"</h4>
+                    <i class="fas fa-users fa-4x text-primary"></i>
+                    <h4 class="mt-3">Abarrotes "El guero"</h4>
                     <p class="text-muted">Inicia sesión</p>
                 </div>
                 <form id="form_login_ajax">

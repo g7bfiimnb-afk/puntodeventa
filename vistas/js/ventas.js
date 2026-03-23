@@ -1,5 +1,9 @@
-// Variable global para el carrito
-let carrito = [];
+// Usamos un condicional para evitar el error de "ya declarado" si el script se carga dos veces
+if (typeof carrito === 'undefined') {
+    var carrito = []; 
+} else {
+    carrito = []; // Si ya existe, lo reiniciamos
+}
 
 $(document).ready(function() {
     
@@ -39,6 +43,7 @@ $(document).ready(function() {
                     }
                 } catch (e) {
                     console.error("Error al parsear JSON:", respuesta);
+                    alert("Error en la respuesta del servidor. Revisa la consola.");
                 }
             }
         });
@@ -51,41 +56,42 @@ $(document).ready(function() {
             return;
         }
 
-        if(!confirm("¿Desea procesar esta venta?")) return;
-
-        let total = $('#total_venta').text();
+        if(!confirm("¿Desea procesar esta venta de $" + $('#total_venta').text() + "?")) return;
 
         $.ajax({
             url: 'ajax/VentaAjax.php',
             method: 'POST',
             data: {
                 productos_venta: carrito,
-                total_venta: total
+                total_venta: $('#total_venta').text()
             },
             success: function(r) {
-                let res = JSON.parse(r);
-                if (res.res == "success") {
-                    alert(res.msj);
-                    carrito = []; 
-                    renderizarTabla();
-                    location.reload(); 
-                } else {
-                    alert(res.msj);
+                try {
+                    let res = JSON.parse(r);
+                    if (res.res == "success") {
+                        alert(res.msj);
+                        carrito = []; 
+                        renderizarTabla();
+                        location.reload(); 
+                    } else {
+                        alert(res.msj);
+                    }
+                } catch (e) {
+                    console.error("Error al procesar cobro:", r);
                 }
             }
         });
     });
 });
 
-// --- FUNCIONES FUERA DEL READY PARA ACCESO GLOBAL ---
+// --- FUNCIONES GLOBALES ---
 
 function agregarAlCarrito(producto) {
     let existe = carrito.find(item => item.id === producto.id);
 
     if(existe) {
-        // Validar stock antes de sumar
-        if(existe.cantidad >= producto.stock) {
-            alert("No hay más stock disponible de este producto");
+        if(parseInt(existe.cantidad) >= parseInt(producto.stock)) {
+            alert("No hay más stock disponible (Máximo: " + producto.stock + ")");
             return;
         }
         existe.cantidad++;
@@ -93,7 +99,6 @@ function agregarAlCarrito(producto) {
         producto.cantidad = 1;
         carrito.push(producto);
     }
-
     renderizarTabla();
 }
 
@@ -102,12 +107,14 @@ function renderizarTabla() {
     let total = 0;
 
     carrito.forEach((item, index) => {
-        let subtotal = parseFloat(item.precio_venta) * item.cantidad;
+        let precio = parseFloat(item.precio_venta);
+        let subtotal = precio * item.cantidad;
         total += subtotal;
+        
         html += `
             <tr>
                 <td>${item.nombre}</td>
-                <td>$${parseFloat(item.precio_venta).toFixed(2)}</td>
+                <td>$${precio.toFixed(2)}</td>
                 <td>
                     <span class="badge badge-light border px-3 py-2">${item.cantidad}</span>
                 </td>
