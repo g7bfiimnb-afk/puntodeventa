@@ -1,0 +1,16 @@
+Options +FollowSymLinks -Indexes
+RewriteEngine On
+RewriteBase /ControlDeMaestros/
+
+# Evitar reescribir archivos o carpetas reales
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Excluir AJAX
+RewriteCond %{REQUEST_URI} !^/ControlDeMaestros/ajax/
+
+# Enviar todo al Front Controller
+RewriteRule ^(.+)$ index.php?url=$1 [QSA,L]
