@@ -1,13 +1,17 @@
 <div class="row">
     <div class="col-md-8">
-        <div class="card shadow-sm mb-4">
+       <div class="card shadow-sm mb-4">
             <div class="card-body">
+                <label for="buscar_producto"><strong><i class="fas fa-search"></i> Buscar Producto</strong></label>
                 <div class="input-group input-group-lg">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text bg-primary text-white"><i class="fas fa-barcode"></i></span>
+                    <input type="text" id="buscar_producto" class="form-control" placeholder="Escribe el nombre o escanea el código..." autofocus>
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="button" id="btn_buscar_lupa">
+                            <i class="fas fa-search"></i>
+                        </button>
                     </div>
-                    <input type="text" id="buscar_producto" class="form-control" placeholder="Escanea el código de barras aquí...">
                 </div>
+                <small class="text-muted">Presiona Enter o haz clic en la lupa para agregar al carrito.</small>
             </div>
         </div>
 

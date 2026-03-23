@@ -2,23 +2,24 @@
 $peticionAjax = true;
 require_once "../controladores/VentaControlador.php";
 
-if(isset($_POST['action'])) {
-    $insVenta = new VentaControlador();
+$insVenta = new VentaControlador();
 
-    // Acción para buscar un producto y agregarlo
-    if($_POST['action'] == "buscar_producto") {
-        if(isset($_POST['codigo'])){
-            echo $insVenta->buscar_producto_controlador($_POST['codigo']);
-        }
-    }
+// 1. Acción para buscar un producto (Cuando usas la lupa o Enter)
+if(isset($_POST['buscar_codigo'])) {
+    echo $insVenta->buscar_producto_venta_controlador($_POST['buscar_codigo']);
+    exit(); // Importante para detener la ejecución aquí
+}
 
-    // Aquí puedes agregar más acciones, como:
-    // if($_POST['action'] == "registrar_venta") { ... }
+// 2. Acción para finalizar la venta (Cuando das clic en Cobrar)
+if(isset($_POST['productos_venta'])) {
+    echo $insVenta->guardar_venta_controlador();
+    exit();
+}
 
-} else {
-    // Si alguien intenta entrar directo al archivo por URL
+// Si no es ninguna de las anteriores y alguien intenta entrar por URL
+if(!isset($_POST['buscar_codigo']) && !isset($_POST['productos_venta'])){
     session_start();
     session_destroy();
-    header("Location: ../index.php");
+    header("Location: ../login/"); // O la ruta de tu login
     exit();
 }

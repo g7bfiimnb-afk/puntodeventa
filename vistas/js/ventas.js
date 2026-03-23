@@ -1,10 +1,93 @@
+// Variable global para el carrito
 let carrito = [];
 
+$(document).ready(function() {
+    
+    // 1. Evento cuando presionan ENTER en el buscador
+    $('#buscar_producto').on('keypress', function(e) {
+        if (e.which == 13) { 
+            ejecutarBusqueda();
+        }
+    });
+
+    // 2. Evento cuando hacen CLIC en la LUPA
+    $('#btn_buscar_lupa').on('click', function() {
+        ejecutarBusqueda();
+    });
+
+    // 3. Función principal de búsqueda
+    function ejecutarBusqueda() {
+        let valor = $('#buscar_producto').val();
+        if (valor == "") {
+            $('#buscar_producto').focus();
+            return;
+        }
+
+        $.ajax({
+            url: 'ajax/VentaAjax.php',
+            method: 'POST',
+            data: { buscar_codigo: valor },
+            success: function(respuesta) {
+                try {
+                    let res = JSON.parse(respuesta);
+                    if(res.res == "success") {
+                        agregarAlCarrito(res.data);
+                        $('#buscar_producto').val("").focus(); 
+                    } else {
+                        alert(res.msj);
+                        $('#buscar_producto').select(); 
+                    }
+                } catch (e) {
+                    console.error("Error al parsear JSON:", respuesta);
+                }
+            }
+        });
+    }
+
+    // 4. Botón FINALIZAR VENTA (COBRAR)
+    $('#btn_finalizar_venta').on('click', function() {
+        if (carrito.length === 0) {
+            alert("El carrito está vacío");
+            return;
+        }
+
+        if(!confirm("¿Desea procesar esta venta?")) return;
+
+        let total = $('#total_venta').text();
+
+        $.ajax({
+            url: 'ajax/VentaAjax.php',
+            method: 'POST',
+            data: {
+                productos_venta: carrito,
+                total_venta: total
+            },
+            success: function(r) {
+                let res = JSON.parse(r);
+                if (res.res == "success") {
+                    alert(res.msj);
+                    carrito = []; 
+                    renderizarTabla();
+                    location.reload(); 
+                } else {
+                    alert(res.msj);
+                }
+            }
+        });
+    });
+});
+
+// --- FUNCIONES FUERA DEL READY PARA ACCESO GLOBAL ---
+
 function agregarAlCarrito(producto) {
-    // Verificar si el producto ya está en el carrito
     let existe = carrito.find(item => item.id === producto.id);
 
     if(existe) {
+        // Validar stock antes de sumar
+        if(existe.cantidad >= producto.stock) {
+            alert("No hay más stock disponible de este producto");
+            return;
+        }
         existe.cantidad++;
     } else {
         producto.cantidad = 1;
@@ -19,15 +102,21 @@ function renderizarTabla() {
     let total = 0;
 
     carrito.forEach((item, index) => {
-        let subtotal = item.precio_venta * item.cantidad;
+        let subtotal = parseFloat(item.precio_venta) * item.cantidad;
         total += subtotal;
         html += `
             <tr>
                 <td>${item.nombre}</td>
-                <td>$${item.precio_venta}</td>
-                <td>${item.cantidad}</td>
+                <td>$${parseFloat(item.precio_venta).toFixed(2)}</td>
+                <td>
+                    <span class="badge badge-light border px-3 py-2">${item.cantidad}</span>
+                </td>
                 <td>$${subtotal.toFixed(2)}</td>
-                <td><button onclick="eliminarDelCarrito(${index})" class="btn btn-danger btn-sm">x</button></td>
+                <td>
+                    <button onclick="eliminarDelCarrito(${index})" class="btn btn-danger btn-sm">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
             </tr>
         `;
     });
