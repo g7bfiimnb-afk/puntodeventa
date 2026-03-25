@@ -73,4 +73,17 @@ class VentaModelo extends Conexion {
             return false;
         }
     }
+
+    // Dentro de la clase VentaModelo
+    public static function sumar_ventas_hoy_modelo() {
+        $db = Conexion::conectar();
+        // Sumamos la columna 'total' filtrando por la fecha actual
+        $sql = $db->prepare("SELECT SUM(total) as total_hoy FROM ventas WHERE DATE(fecha) = CURDATE()");
+        $sql->execute();
+        $res = $sql->fetch(PDO::FETCH_ASSOC);
+        
+        // Si no hay ventas, devolvemos 0 para evitar errores
+        return ($res['total_hoy'] != "") ? $res['total_hoy'] : 0;
+    }
+
 }

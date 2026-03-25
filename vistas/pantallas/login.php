@@ -1,22 +1,40 @@
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
-    <div class="card shadow-lg" style="width: 400px; border-radius: 15px;">
-        <div class="card-body p-5">
-            <div class="text-center mb-4">
-                <i class="fas fa-user-circle fa-4x text-primary"></i>
-                <h3 class="mt-2">Acceso al Sistema</h3>
-            </div>
-            <form id="form_login">
-                <div class="form-group">
-                    <label>Usuario</label>
-                    <input type="text" name="usuario" class="form-control" required autofocus>
-                </div>
-                <div class="form-group">
-                    <label>Contraseña</label>
-                    <input type="password" name="password" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn-primary btn-block btn-lg">Entrar</button>
-            </form>
-            <div id="mensaje_login" class="mt-3"></div>
-        </div>
-    </div>
-</div>
+$(document).ready(function() {
+    // Escuchamos el evento submit del formulario con id "form_login"
+    $('#form_login').on('submit', function(e) {
+        e.preventDefault(); // Evitamos que la página se recargue
+        
+        // Limpiamos mensajes previos
+        $('#mensaje_login').html('');
+
+        $.ajax({
+            url: 'ajax/LoginAjax.php', // El archivo PHP que procesa el login
+            method: 'POST',
+            data: $(this).serialize(),
+            success: function(respuesta) {
+                try {
+                    let res = JSON.parse(respuesta);
+                    
+                    if(res.res == "success") {
+                        // REGLA DE REDIRECCIÓN POR ROL
+                        // Si el rol es 'comprador', va a la vista tipo Mercado Libre
+                        if(res.rol == "comprador") {
+                            window.location.href = "index.php?p=comprador";
+                        } else {
+                            // Si es 'admin', va al panel de control normal
+                            window.location.href = "index.php?p=inicio";
+                        }
+                    } else {
+                        // Si las credenciales son incorrectas
+                        $('#mensaje_login').html('<div class="alert alert-danger text-center">' + res.msj + '</div>');
+                    }
+                } catch (error) {
+                    console.error("Error al procesar la respuesta del servidor:", respuesta);
+                    $('#mensaje_login').html('<div class="alert alert-warning text-center">Error en el formato de respuesta.</div>');
+                }
+            },
+            error: function() {
+                $('#mensaje_login').html('<div class="alert alert-danger text-center">No se pudo conectar con el servidor.</div>');
+            }
+        });
+    });
+});

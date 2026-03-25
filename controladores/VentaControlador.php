@@ -82,4 +82,11 @@ class VentaControlador extends ProductoModelo {
             ]);
         }
     }
+
+        // Dentro de la clase VentaControlador
+    public function obtener_total_ventas_hoy() {
+        require_once "./modelo/VentaModelo.php";
+        $total = VentaModelo::sumar_ventas_hoy_modelo();
+        return number_format($total, 2);
+    }
 }

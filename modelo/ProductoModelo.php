@@ -35,4 +35,18 @@ class ProductoModelo extends Conexion {
         $stmt->bindParam(":id", $id);
         return $stmt->execute();
     }
+
+    protected static function guardar_producto_modelo($datos) {
+    $sql = Conexion::conectar()->prepare("INSERT INTO productos 
+        (codigo_barras, nombre, precio_venta, stock, categoria_id) 
+        VALUES (:codigo, :nombre, :precio, :stock, :categoria)");
+
+    $sql->bindParam(":codigo", $datos['codigo']);
+    $sql->bindParam(":nombre", $datos['nombre']);
+    $sql->bindParam(":precio", $datos['precio']);
+    $sql->bindParam(":stock", $datos['stock']);
+    $sql->bindParam(":categoria", $datos['categoria']); // Nuevo campo
+
+    return $sql->execute();
+    }
 }

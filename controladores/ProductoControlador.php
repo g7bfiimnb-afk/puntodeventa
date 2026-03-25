@@ -65,4 +65,22 @@ class ProductoControlador extends ProductoModelo {
             return json_encode(["res" => "error", "msj" => "No se pudo eliminar el producto"]);
         }
     }
+
+    public function guardar_producto_controlador() {
+        $codigo = $_POST['producto_codigo'];
+        $nombre = $_POST['producto_nombre'];
+        $precio = $_POST['producto_precio'];
+        $stock = $_POST['producto_stock'];
+        $categoria = $_POST['producto_categoria']; // Capturamos la categoría
+
+        $datos = [
+            "codigo" => $codigo,
+            "nombre" => $nombre,
+            "precio" => $precio,
+            "stock" => $stock,
+            "categoria" => $categoria
+        ];
+
+        return ProductoModelo::guardar_producto_modelo($datos);
+    }
 }
