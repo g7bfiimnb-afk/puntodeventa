@@ -1,23 +1,17 @@
 <?php
-require_once "../configuracion/conexiones.php";
+// Esto busca el archivo conexiones.php de forma infalible
+require_once __DIR__ . '/../configuracion/conexiones.php';
 
 class VentaModelo extends Conexion {
-
-    /**
-     * Busca un producto por código de barras o coincidencia en el nombre
-     */
-    public static function buscar_producto_modelo($busqueda) {
+    protected static function obtener_productos_modelo($inicio) {
         $db = Conexion::conectar();
-        $sql = $db->prepare("SELECT id, nombre, precio_venta, stock, codigo_barras 
-                             FROM productos 
-                             WHERE codigo_barras = :busqueda 
-                             OR nombre LIKE CONCAT('%', :busqueda, '%') 
-                             LIMIT 1");
+        if(!$db) return false;
         
-        $sql->bindParam(":busqueda", $busqueda);
+        // Consultamos la tabla 'productos'
+        $sql = $db->prepare("SELECT * FROM productos LIMIT :inicio, 12");
+        $sql->bindValue(":inicio", (int)$inicio, PDO::PARAM_INT);
         $sql->execute();
-        
-        return $sql->fetch(PDO::FETCH_ASSOC);
+        return $sql;
     }
 
     /**
@@ -44,21 +38,41 @@ class VentaModelo extends Conexion {
 
             // 2. Recorrer los productos para insertar detalles y restar inventario
             foreach ($datos['productos'] as $prod) {
-                
+                // Verificar que exista el producto y hay stock suficiente
+                $sqlCheck = $db->prepare("SELECT stock, precio_venta FROM productos WHERE id = :p_id FOR UPDATE");
+                $sqlCheck->execute([":p_id" => $prod['id']]);
+                $row = $sqlCheck->fetch(PDO::FETCH_ASSOC);
+
+                if (!$row) {
+                    throw new Exception("El producto con ID {$prod['id']} no existe.");
+                }
+
+                $stockActual = intval($row['stock']);
+                $cantidadVendida = intval($prod['cantidad']);
+
+                if ($cantidadVendida <= 0) {
+                    throw new Exception("Cantidad inválida para el producto ID {$prod['id']}.");
+                }
+
+                if ($cantidadVendida > $stockActual) {
+                    throw new Exception("No hay stock suficiente para el producto ID {$prod['id']}. Stock disponible: {$stockActual}.");
+                }
+
                 // Insertar en la tabla detalle_ventas
+                $precioDetalle = isset($prod['precio']) ? $prod['precio'] : $row['precio_venta'];
                 $sqlDetalle = $db->prepare("INSERT INTO detalle_ventas (venta_id, producto_id, cantidad, precio_venta) 
                                            VALUES (:v_id, :p_id, :cant, :precio)");
                 $sqlDetalle->execute([
                     ":v_id"   => $idVenta,
                     ":p_id"   => $prod['id'],
-                    ":cant"   => $prod['cantidad'],
-                    ":precio" => $prod['precio_venta']
+                    ":cant"   => $cantidadVendida,
+                    ":precio" => $precioDetalle
                 ]);
 
                 // Actualizar el stock restando la cantidad vendida
                 $sqlStock = $db->prepare("UPDATE productos SET stock = stock - :cant WHERE id = :p_id");
                 $sqlStock->execute([
-                    ":cant" => $prod['cantidad'],
+                    ":cant" => $cantidadVendida,
                     ":p_id" => $prod['id']
                 ]);
             }

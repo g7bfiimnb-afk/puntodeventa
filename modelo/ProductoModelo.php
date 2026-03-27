@@ -1,52 +1,49 @@
 <?php
-if(file_exists("../configuracion/conexiones.php")){
-    require_once "../configuracion/conexiones.php";
-} else {
-    require_once "./configuracion/conexiones.php";
-}
+require_once "maestroModelo.php";
 
-class ProductoModelo extends Conexion {
+class ProductoModelo extends maestroModelo {
 
-    protected static function agregar_producto_modelo($datos) {
-        $sql = "INSERT INTO productos (codigo_barras, nombre, precio_compra, precio_venta, stock) 
-                VALUES (:codigo, :nombre, :p_compra, :p_venta, :stock)";
-        
-        $stmt = Conexion::conectar()->prepare($sql);
-        $stmt->bindParam(":codigo", $datos['codigo']);
-        $stmt->bindParam(":nombre", $datos['nombre']);
-        $stmt->bindParam(":p_compra", $datos['p_compra']);
-        $stmt->bindParam(":p_venta", $datos['p_venta']);
-        $stmt->bindParam(":stock", $datos['stock']);
-        
-        return $stmt->execute();
+    protected static function listar_productos_modelo() {
+        $sql = parent::conectar()->prepare("SELECT * FROM productos ORDER BY nombre ASC");
+        $sql->execute();
+        return $sql;
     }
 
-    protected static function consultar_productos_modelo() {
-        $sql = "SELECT * FROM productos ORDER BY nombre ASC";
-        $stmt = Conexion::conectar()->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    protected static function guardar_producto_modelo($d) {
+        $sql = parent::conectar()->prepare("INSERT INTO productos (codigo_barras, nombre, precio_compra, precio_venta, stock, categoria, imagen) VALUES (:cod, :nom, :pc, :pv, :st, :cat, :img)");
+        $sql->bindParam(":cod", $d['codigo_barras']);
+        $sql->bindParam(":nom", $d['nombre']);
+        $sql->bindParam(":pc", $d['precio_compra']);
+        $sql->bindParam(":pv", $d['precio_venta']);
+        $sql->bindParam(":st", $d['stock']);
+        $sql->bindParam(":cat", $d['categoria']);
+        $sql->bindParam(":img", $d['imagen']);
+        return $sql->execute();
     }
 
-    // Añade esto dentro de la clase ProductoModelo
+    protected static function actualizar_producto_modelo($d) {
+        $sql = parent::conectar()->prepare("UPDATE productos SET codigo_barras=:cod, nombre=:nom, precio_compra=:pc, precio_venta=:pv, stock=:st, categoria=:cat, imagen=:img WHERE id=:id");
+        $sql->bindParam(":id", $d['id']);
+        $sql->bindParam(":cod", $d['codigo_barras']);
+        $sql->bindParam(":nom", $d['nombre']);
+        $sql->bindParam(":pc", $d['precio_compra']);
+        $sql->bindParam(":pv", $d['precio_venta']);
+        $sql->bindParam(":st", $d['stock']);
+        $sql->bindParam(":cat", $d['categoria']);
+        $sql->bindParam(":img", $d['imagen']);
+        return $sql->execute();
+    }
+
     protected static function eliminar_producto_modelo($id) {
-        $sql = "DELETE FROM productos WHERE id = :id";
-        $stmt = Conexion::conectar()->prepare($sql);
-        $stmt->bindParam(":id", $id);
-        return $stmt->execute();
+        $sql = parent::conectar()->prepare("DELETE FROM productos WHERE id=:id");
+        $sql->bindParam(":id", $id);
+        return $sql->execute();
     }
 
-    protected static function guardar_producto_modelo($datos) {
-    $sql = Conexion::conectar()->prepare("INSERT INTO productos 
-        (codigo_barras, nombre, precio_venta, stock, categoria_id) 
-        VALUES (:codigo, :nombre, :precio, :stock, :categoria)");
-
-    $sql->bindParam(":codigo", $datos['codigo']);
-    $sql->bindParam(":nombre", $datos['nombre']);
-    $sql->bindParam(":precio", $datos['precio']);
-    $sql->bindParam(":stock", $datos['stock']);
-    $sql->bindParam(":categoria", $datos['categoria']); // Nuevo campo
-
-    return $sql->execute();
+    protected static function obtener_producto_por_id($id) {
+        $sql = parent::conectar()->prepare("SELECT * FROM productos WHERE id=:id");
+        $sql->bindParam(":id", $id);
+        $sql->execute();
+        return $sql;
     }
 }

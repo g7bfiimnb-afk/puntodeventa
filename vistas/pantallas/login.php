@@ -16,7 +16,7 @@ $(document).ready(function() {
                     
                     if(res.res == "success") {
                         // REGLA DE REDIRECCIÓN POR ROL
-                        // Si el rol es 'comprador', va a la vista tipo Mercado Libre
+                        // Si el rol es 'comprador', va a la vista tipo Mercado
                         if(res.rol == "comprador") {
                             window.location.href = "index.php?p=comprador";
                         } else {

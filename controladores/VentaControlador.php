@@ -1,13 +1,7 @@
 <?php
-if(isset($peticionAjax) && $peticionAjax){
-    require_once "../modelo/ProductoModelo.php";
-    require_once "../modelo/VentaModelo.php";
-}else{
-    require_once "./modelo/ProductoModelo.php";
-    if(file_exists("./modelo/VentaModelo.php")){
-        require_once "./modelo/VentaModelo.php";
-    }
-}
+// Esto construye la ruta real en el servidor, sin importar si es AJAX o no
+require_once __DIR__ . "/../modelo/ProductoModelo.php";
+require_once __DIR__ . "/../modelo/VentaModelo.php";
 
 class VentaControlador extends ProductoModelo {
 
@@ -54,11 +48,18 @@ class VentaControlador extends ProductoModelo {
             return json_encode(["res" => "error", "msj" => "Sesión expirada. Reinicie el sistema."]);
         }
 
-        $productos = (isset($_POST['productos_venta'])) ? $_POST['productos_venta'] : [];
+        $productos = [];
+        if (isset($_POST['productos_venta'])) {
+            $productos = json_decode($_POST['productos_venta'], true);
+            if(!is_array($productos)) {
+                $productos = [];
+            }
+        }
+
         $total = (isset($_POST['total_venta'])) ? $_POST['total_venta'] : 0;
         $usuario = $_SESSION['usuario_id'];
 
-        if(empty($productos)){
+        if (empty($productos)) {
             return json_encode(["res" => "error", "msj" => "El carrito está vacío."]);
         }
 
@@ -70,11 +71,13 @@ class VentaControlador extends ProductoModelo {
 
         $res = VentaModelo::guardar_venta_modelo($datosVenta);
 
-        if($res) {
+        if($res === true) {
             return json_encode([
                 "res" => "success", 
                 "msj" => "Venta guardada con éxito."
             ]);
+        } elseif (is_array($res) && isset($res['msj'])) {
+            return json_encode(["res" => "error", "msj" => $res['msj']]);
         } else {
             return json_encode([
                 "res" => "error", 

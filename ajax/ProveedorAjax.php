@@ -1,32 +1,16 @@
 <?php
+$peticionAjax = true;
 require_once "../configuracion/conexiones.php";
 
-// Acción para GUARDAR un proveedor
-if(isset($_POST['nombre_prov'])){
-    $db = Conexion::conectar();
-    
-    $nombre = $_POST['nombre_prov'];
-    $contacto = $_POST['contacto_prov'];
-    $tel = $_POST['telefono_prov'];
-    $email = $_POST['email_prov'];
-    $dir = $_POST['direccion_prov'];
+if(isset($_POST['nombre_empresa']) || isset($_POST['id_eliminar_prov'])){
+    require_once "../controladores/ProveedorControlador.php";
+    $insProv = new ProveedorControlador();
 
-    $sql = $db->prepare("INSERT INTO proveedores (nombre, contacto, telefono, email, direccion) VALUES (?,?,?,?,?)");
-    
-    if($sql->execute([$nombre, $contacto, $tel, $email, $dir])){
-        echo json_encode(["res" => "success", "msj" => "¡Proveedor guardado con éxito!"]);
+    if(isset($_POST['id_eliminar_prov'])){
+        echo json_encode($insProv->eliminar_proveedor_controlador($_POST['id_eliminar_prov']));
     } else {
-        echo json_encode(["res" => "error", "msj" => "Hubo un error al intentar guardar."]);
+        echo json_encode($insProv->acciones_proveedor_controlador());
     }
-    exit();
-}
-
-// Acción para ELIMINAR un proveedor
-if(isset($_POST['id_eliminar'])){
-    $db = Conexion::conectar();
-    $sql = $db->prepare("DELETE FROM proveedores WHERE id = ?");
-    if($sql->execute([$_POST['id_eliminar']])){
-        echo json_encode(["res" => "success", "msj" => "Proveedor eliminado."]);
-    }
-    exit();
+} else {
+    echo json_encode(["res" => "error", "msj" => "Acceso denegado"]);
 }

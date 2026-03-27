@@ -1,72 +1,86 @@
 $(document).ready(function() {
 
-    // 1. INICIALIZACIÓN DE DATATABLES
-    // Solo una vez, con todas las funciones de ordenamiento activadas
-    $('#tablaInventario').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
-        },
-        "order": [[1, "asc"]], // Orden inicial por Nombre (A-Z)
-        "columnDefs": [
-            { "targets": 4, "orderable": false } // La columna 'Acciones' no tiene flechas de orden
-        ],
-        "pageLength": 10,
-        "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]],
-        "dom": '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
-               '<"row"<"col-sm-12"tr>>' +
-               '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
-    });
-
-    // 2. GUARDAR NUEVO PRODUCTO (DESDE LA MODAL)
-    $('#form_producto_ajax').on('submit', function(e) {
-        e.preventDefault();
+    // 1. BOTÓN AGREGAR (EL AZUL ARRIBA A LA DERECHA)
+    window.abrirModalNuevo = function() {
+        console.log('abrirModalNuevo() ejecutándose');
+        // Limpiar el formulario
+        if ($('#form_producto_ajax').length) {
+            $('#form_producto_ajax')[0].reset();
+        }
+        // Establecer valores
+        $('#id_producto').val('');
+        $('#modo_prod').val('nuevo');
+        $('#tituloModal').text('Registrar Nuevo Producto');
         
-        $.ajax({
-            url: 'ajax/ProductoAjax.php',
-            method: 'POST',
-            data: $(this).serialize(),
-            success: function(r) {
-                try {
-                    let res = JSON.parse(r);
-                    if(res.res == "success") {
-                        $('#modalNuevoProducto').modal('hide');
-                        alert(res.msj);
-                        location.reload(); 
-                    } else {
-                        alert(res.msj);
-                    }
-                } catch (error) {
-                    console.error("Error al procesar respuesta:", r);
-                }
-            }
-        });
+        // Mostrar modal
+        $('#modalProducto').modal('show');
+        console.log('Modal abierto');
+    };
+
+    // 2. BOTÓN EDITAR (EL AMARILLO EN LA TABLA)
+    $(document).on('click', '.btn-editar-prod', function() {
+        let btn = $(this);
+        $('#id_producto').val(btn.data('id'));
+        $('#codigo_barras').val(btn.data('codigo'));
+        $('#nombre').val(btn.data('nombre'));
+        $('#precio_compra').val(btn.data('pcompra'));
+        $('#precio_venta').val(btn.data('pventa'));
+        $('#stock').val(btn.data('stock'));
+        $('#categoria').val(btn.data('cat'));
+        $('#modo_prod').val('editar');
+        $('#tituloModal').text('Editar Producto');
+        $('#modalProducto').modal('show');
     });
 
-    // 3. ELIMINAR PRODUCTO
-    // Usamos delegación de eventos por si la tabla cambia
-    $(document).on('click', '.btn-eliminar', function() {
-        let id = $(this).attr('data-id');
-
-        if (confirm("¿Estás seguro de eliminar este producto?")) {
+    // 3. BOTÓN ELIMINAR (EL ROJO)
+    $(document).on('click', '.btn-eliminar-prod', function() {
+        let id = $(this).data('id');
+        if (confirm("¿Seguro que deseas eliminar este producto?")) {
             $.ajax({
                 url: 'ajax/ProductoAjax.php',
                 method: 'POST',
-                data: { id_eliminar: id },
-                success: function(respuesta) {
+                data: { id_eliminar_prod: id },
+                success: function(r) {
                     try {
-                        let res = JSON.parse(respuesta);
-                        if (res.res == "success") {
-                            alert(res.msj);
-                            location.reload(); 
-                        } else {
-                            alert(res.msj);
-                        }
-                    } catch (error) {
-                        console.error("Error al eliminar:", respuesta);
-                    }
+                        let res = JSON.parse(r);
+                        if (res.res == "success") location.reload();
+                    } catch(e) { alert("Error al eliminar"); }
                 }
             });
         }
     });
 
-}); // Fin de $(document).ready
+    // 4. GUARDAR / EDITAR (BOTÓN VERDE)
+    $('#form_producto_ajax').on('submit', function(e) {
+        e.preventDefault();
+        console.log('Enviando formulario de producto...');
+        $.ajax({
+            url: 'ajax/ProductoAjax.php',
+            method: 'POST',
+            data: new FormData(this),
+            contentType: false,
+            processData: false,
+            success: function(respuesta) {
+                console.log('Respuesta del servidor:', respuesta);
+                try {
+                    let res = JSON.parse(respuesta);
+                    if (res.res == "success") {
+                        alert(res.msj || "Producto guardado correctamente");
+                        location.reload();
+                    } else {
+                        alert("Error: " + (res.msj || "No se pudo guardar en la base de datos."));
+                    }
+                } catch (e) {
+                    console.error("Respuesta cruda del servidor:", respuesta);
+                    alert("Error técnico. Revisa la consola (F12).");
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error AJAX:", error);
+                console.error("Status:", status);
+                console.error("Response:", xhr.responseText);
+                alert("Error al conectar con el servidor: " + error);
+            }
+        });
+    });
+});
