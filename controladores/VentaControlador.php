@@ -54,8 +54,9 @@ class VentaControlador extends ProductoModelo {
             return json_encode(["res" => "error", "msj" => "Sesión expirada. Reinicie el sistema."]);
         }
 
-        $productos = (isset($_POST['productos_venta'])) ? $_POST['productos_venta'] : [];
-        $total = (isset($_POST['total_venta'])) ? $_POST['total_venta'] : 0;
+        // Decodificar el JSON que viene desde JavaScript
+        $productos = (isset($_POST['productos_venta'])) ? json_decode($_POST['productos_venta'], true) : [];
+        $total = (isset($_POST['total_venta'])) ? floatval($_POST['total_venta']) : 0;
         $usuario = $_SESSION['usuario_id'];
 
         if(empty($productos)){

@@ -37,7 +37,7 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(res){
                 // Llenar los campos del modal
-                $('#codigo_prod').val(res.codigo);
+                $('#codigo_prod').val(res.codigo_barras);
                 $('#nombre_prod').val(res.nombre);
                 $('#p_compra_prod').val(res.precio_compra);
                 $('#p_venta_prod').val(res.precio_venta);
@@ -79,21 +79,20 @@ $(document).ready(function() {
             cache: false,
             contentType: false, // OBLIGATORIO para FormData
             processData: false, // OBLIGATORIO para FormData
-            success: function(respuesta) {
-                console.log(respuesta);
-                try {
-                    let res = JSON.parse(respuesta);
-                    if(res.res == "success") {
-                        $('#modalProducto').modal('hide');
-                        alert(res.msj);
-                        location.reload(); 
-                    } else {
-                        alert("Error: " + res.msj);
-                    }
-                } catch (error) {
-                    console.error("Error servidor:", respuesta);
-                    alert("Error crítico del servidor. Revisa consola.");
+            dataType: 'json', // Solicitar respuesta JSON parseada automaticamente
+            success: function(res) {
+                console.log(res);
+                if(res.res == "success") {
+                    $('#modalProducto').modal('hide');
+                    alert(res.msj);
+                    location.reload(); 
+                } else {
+                    alert("Error: " + res.msj);
                 }
+            },
+            error: function(xhr, status, error) {
+                console.error("Error AJAX:", status, error, xhr.responseText);
+                alert("Error crítico del servidor. Revisa consola.");
             }
         });
     });

@@ -114,6 +114,8 @@ if($vista == "dashboard"){
     <?php if($p == "ventas") echo '<script src="./vistas/js/ventas.js"></script>'; ?>
     <?php if($p == "productos") echo '<script src="./vistas/js/productos.js"></script>'; ?>
     <?php if($p == "proveedores") echo '<script src="./vistas/js/proveedores.js"></script>'; ?>
+    <?php if($p == "comprador") echo '<script src="./vistas/js/comprador.js"></script>'; ?>
+    <?php if($p == "inicio") echo '<script src="./vistas/js/inicio.js"></script>'; ?>
 <?php endif; ?>
 
 </body>

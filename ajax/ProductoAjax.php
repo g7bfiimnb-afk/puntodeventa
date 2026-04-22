@@ -34,8 +34,9 @@ if(isset($_POST['codigo_prod'])){
         $tamano = $_FILES['foto_prod']['size'];
         $temporal = $_FILES['foto_prod']['tmp_name'];
 
-        // Validar tipo (jpg, png)
-        if(strpos($tipo, "jpeg") || strpos($tipo, "png")){
+        // Validar tipo (jpg, png, webp, avif)
+        $tipos_permitidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif'];
+        if(in_array($tipo, $tipos_permitidos)){
             // Validar tamaño (2MB)
             if($tamano < 2000000){
                 
@@ -57,7 +58,7 @@ if(isset($_POST['codigo_prod'])){
                 exit();
             }
         } else {
-            echo json_encode(["res" => "error", "msj" => "Formato de foto no válido. Solo JPG/PNG."]);
+            echo json_encode(["res" => "error", "msj" => "Formato de foto no válido. Solo JPG/PNG/WEBP/AVIF."]);
             exit();
         }
     } else {
@@ -74,7 +75,7 @@ if(isset($_POST['codigo_prod'])){
     // --- LÓGICA DE BASE DE DATOS (INSERT O UPDATE) ---
     if(empty($id)){
         // ES NUEVO
-        $sql = $db->prepare("INSERT INTO productos (codigo, nombre, precio_compra, precio_venta, stock, imagen) VALUES (?,?,?,?,?,?)");
+        $sql = $db->prepare("INSERT INTO productos (codigo_barras, nombre, precio_compra, precio_venta, stock, imagen) VALUES (?,?,?,?,?,?)");
         if($sql->execute([$codigo, $nombre, $p_compra, $p_venta, $stock, $nombre_foto_bd])){
             echo json_encode(["res" => "success", "msj" => "¡Producto creado con éxito!"]);
         } else {
@@ -82,7 +83,7 @@ if(isset($_POST['codigo_prod'])){
         }
     } else {
         // ES EDITAR
-        $sql = $db->prepare("UPDATE productos SET codigo=?, nombre=?, precio_compra=?, precio_venta=?, stock=?, imagen=? WHERE id=?");
+        $sql = $db->prepare("UPDATE productos SET codigo_barras=?, nombre=?, precio_compra=?, precio_venta=?, stock=?, imagen=? WHERE id=?");
         if($sql->execute([$codigo, $nombre, $p_compra, $p_venta, $stock, $nombre_foto_bd, $id])){
             echo json_encode(["res" => "success", "msj" => "¡Producto actualizado con éxito!"]);
         } else {

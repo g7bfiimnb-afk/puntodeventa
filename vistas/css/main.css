@@ -89,3 +89,77 @@ body {
 .comprador-container .navbar-dark .navbar-brand {
     font-size: 1.4rem;
 }
+
+/* Estilos para Modal de Confirmación de Compra */
+#modalConfirmacionCompra .modal-content {
+    background: white !important;
+}
+
+#modalConfirmacionCompra .modal-header {
+    border-radius: 15px 15px 0 0;
+    padding: 2rem !important;
+}
+
+#modalConfirmacionCompra .modal-title {
+    font-size: 1.5rem;
+    letter-spacing: 0.5px;
+}
+
+#modalConfirmacionCompra .modal-body {
+    padding: 2rem !important;
+    background: #f8f9fa;
+    border-radius: 0;
+}
+
+#modalConfirmacionCompra .modal-footer {
+    padding: 1.5rem 2rem !important;
+    border-top: 2px solid #dee2e6;
+}
+
+#modalConfirmacionCompra .row {
+    align-items: center;
+}
+
+#modalConfirmacionCompra .text-right {
+    font-weight: 500;
+    color: #6c757d;
+}
+
+#modalConfirmacionCompra .text-left {
+    font-weight: 600;
+    padding-left: 1rem;
+}
+
+#modalConfirmacionCompra hr {
+    border: 2px solid #dee2e6;
+    opacity: 0.5;
+}
+
+#modalConfirmacionCompra .btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    padding: 0.75rem 2rem;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+#modalConfirmacionCompra .btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+}
+
+#modalConfirmacionCompra .btn-secondary {
+    padding: 0.75rem 2rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+#modalConfirmacionCompra .btn-secondary:hover {
+    transform: translateY(-2px);
+}
+
+/* Sombra elegante para el modal */
+#modalConfirmacionCompra .modal-dialog {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}

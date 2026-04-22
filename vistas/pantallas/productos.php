@@ -104,9 +104,9 @@ $productos = $query->fetchAll(PDO::FETCH_ASSOC);
                             <img src="./vistas/img/productos/default.png" id="previsualizarFoto" class="img-thumbnail mr-3" style="height: 80px; width: 80px; object-fit: contain;">
                             
                             <div class="custom-file custom-file-sm">
-                                <input type="file" name="foto_prod" id="foto_prod" class="custom-file-input" accept="image/*">
+                                <input type="file" name="foto_prod" id="foto_prod" class="custom-file-input" accept="image/jpeg,image/jpg,image/png,image/webp,image/avif">
                                 <label class="custom-file-label" for="foto_prod">Seleccionar archivo...</label>
-                                <small class="text-muted">Max: 2MB. Formatos: jpg, png.</small>
+                                <small class="text-muted">Max: 2MB. Formatos: jpg, png, webp, avif.</small>
                             </div>
                         </div>
                     </div>
