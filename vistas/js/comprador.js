@@ -71,7 +71,7 @@ $(document).ready(function() {
     // ========== 5. ACTUALIZAR CANTIDAD ==========
     $(document).on('input', '.input-cantidad-carrito', function() {
         let index = $(this).attr('data-index');
-        let nuevaCantidad = parseFloat($(this).val()) || 0;
+        let nuevaCantidad = parseInt($(this).val()) || 0;
         
         if(nuevaCantidad <= 0) {
             carritoComprador.splice(index, 1);
@@ -83,19 +83,6 @@ $(document).ready(function() {
         renderizarCarritoComprador();
     });
 
-    // ========== 6. CALCULAR CAMBIO ==========
-    $(document).on('input', '#monto_pagado', function() {
-        let total = calcularTotalCarrito();
-        let montoPagado = parseFloat($(this).val()) || 0;
-        let cambio = montoPagado - total;
-        
-        if(cambio < 0) {
-            $('#cambio_resultado').text('$ ' + cambio.toFixed(2)).removeClass('text-primary').addClass('text-danger');
-        } else {
-            $('#cambio_resultado').text('$ ' + cambio.toFixed(2)).removeClass('text-danger').addClass('text-primary');
-        }
-    });
-
     // ========== 7. PROCESAR COMPRA ==========
     $('#btn_procesar_compra').on('click', function() {
         if(carritoComprador.length === 0) {
@@ -104,72 +91,31 @@ $(document).ready(function() {
         }
         
         let total = calcularTotalCarrito();
-        let montoPagado = parseFloat($('#monto_pagado').val()) || 0;
         
-        if(montoPagado === 0) {
-            alert("Debes ingresar un monto de pago");
-            $('#monto_pagado').focus();
-            return;
-        }
-        
-        if(montoPagado < total) {
-            alert("El monto es insuficiente. Falta: $" + (total - montoPagado).toFixed(2));
-            return;
-        }
-        
-        let cambio = montoPagado - total;
-        
-        // Mostrar modal de confirmación personalizado
+        // Mostrar ticket de compra (modal de confirmación)
         $('#conf_total').text('$ ' + total.toFixed(2));
-        $('#conf_recibido').text('$ ' + montoPagado.toFixed(2));
-        $('#conf_cambio').text('$ ' + cambio.toFixed(2));
+        $('#conf_recibido').text('$ ' + total.toFixed(2));
+        $('#conf_cambio').text('$ 0.00');
         
         $('#modalCarritoComprador').modal('hide');
         $('#modalConfirmacionCompra').modal('show');
     });
 
-    // ========== 8. CONFIRMAR COMPRA EN MODAL ==========
+    // ========== 8. CONFIRMAR COMPRA EN MODAL (DESPUÉS DEL TICKET) ==========
     $('#btn_confirmar_compra').on('click', function() {
         let total = parseFloat($('#conf_total').text().replace('$ ', ''));
-        let montoPagado = parseFloat($('#conf_recibido').text().replace('$ ', ''));
-        let cambio = parseFloat($('#conf_cambio').text().replace('$ ', ''));
         
-        $.ajax({
-            url: 'ajax/VentaAjax.php',
-            method: 'POST',
-            data: {
-                productos_venta: JSON.stringify(carritoComprador),
-                total_venta: total,
-                monto_recibido: montoPagado,
-                cambio: cambio
-            },
-            success: function(r) {
-                try {
-                    let res = JSON.parse(r);
-                    if (res.res == "success") {
-                        $('#modalConfirmacionCompra').modal('hide');
-                        mostrarNotificacionExito('Compra procesada correctamente', cambio);
-                        carritoComprador = [];
-                        actualizarBadgeCarrito();
-                        $('#monto_pagado').val('');
-                        $('#cambio_resultado').text('$ 0.00');
-                        renderizarCarritoComprador();
-                    } else {
-                        alert("✗ Error: " + res.msj);
-                    }
-                } catch (e) {
-                    console.error("Error:", r);
-                    alert("Respuesta inesperada del servidor.");
-                }
-            },
-            error: function() {
-                alert("Error al procesar la compra.");
-            }
-        });
+        // Guardar datos en localStorage para la nueva ventana
+        localStorage.setItem('carritoComprador', JSON.stringify(carritoComprador));
+        localStorage.setItem('totalCompra', total.toString());
+        
+        // Abrir nueva ventana con el formulario de información personal
+        window.open('info_personal.php', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+        
+        // Cerrar el modal de confirmación
+        $('#modalConfirmacionCompra').modal('hide');
     });
 });
-
-// ==================== FUNCIONES GLOBALES ====================
 
 function agregarAlCarritoComprador(producto) {
     let existe = carritoComprador.find(item => item.id === producto.id);
@@ -189,8 +135,6 @@ function renderizarCarritoComprador() {
     if(carritoComprador.length === 0) {
         $('#contenedor_carrito').html('<p class="text-center text-muted py-5"><i class="fas fa-inbox fa-3x mb-3 d-block"></i>Tu carrito está vacío</p>');
         $('#total_carrito_resumen').text('$ 0.00');
-        $('#monto_pagado').val('');
-        $('#cambio_resultado').text('$ 0.00');
         return;
     }
     
@@ -220,7 +164,7 @@ function renderizarCarritoComprador() {
                 <td>$ ${parseFloat(item.precio_venta).toFixed(2)}</td>
                 <td>
                     <input type="number" class="form-control form-control-sm input-cantidad-carrito" 
-                           value="${item.cantidad}" min="0.01" step="0.01" data-index="${index}">
+                           value="${item.cantidad}" min="1" step="1" data-index="${index}">
                 </td>
                 <td class="font-weight-bold text-success">$ ${subtotal.toFixed(2)}</td>
                 <td class="text-center">
@@ -236,8 +180,6 @@ function renderizarCarritoComprador() {
     $('#contenedor_carrito').html(html);
     let total = calcularTotalCarrito();
     $('#total_carrito_resumen').text('$ ' + total.toFixed(2));
-    $('#monto_pagado').val('');
-    $('#cambio_resultado').text('$ 0.00');
 }
 
 function calcularTotalCarrito() {
@@ -250,7 +192,7 @@ function calcularTotalCarrito() {
 
 // MEJORA: Cuenta el total de piezas, no solo tipos de productos
 function actualizarBadgeCarrito() {
-    let totalPiezas = carritoComprador.reduce((sum, item) => sum + parseFloat(item.cantidad), 0);
+    let totalPiezas = carritoComprador.reduce((sum, item) => sum + parseInt(item.cantidad), 0);
     $('#badge_carrito').text(totalPiezas).toggle(totalPiezas > 0);
 }
 

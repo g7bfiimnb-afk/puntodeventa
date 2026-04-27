@@ -31,12 +31,17 @@ class VentaModelo extends Conexion {
             // Iniciamos transacción para asegurar la integridad de los datos
             $db->beginTransaction(); 
 
-            // 1. Insertar la cabecera de la venta
+            // 1. Insertar la cabecera de la venta con información del cliente
             // Usamos NOW() para la columna 'fecha' de tu base de datos
-            $sqlVenta = $db->prepare("INSERT INTO ventas (fecha, total, usuario_id) 
-                                     VALUES (NOW(), :total, :usuario)");
+            $sqlVenta = $db->prepare("INSERT INTO ventas (fecha, total, usuario_id, cliente_nombre, cliente_email, cliente_telefono, cliente_direccion, metodo_pago) 
+                                     VALUES (NOW(), :total, :usuario, :nombre, :email, :telefono, :direccion, :metodo)");
             $sqlVenta->bindParam(":total", $datos['total']);
             $sqlVenta->bindParam(":usuario", $datos['usuario_id']);
+            $sqlVenta->bindParam(":nombre", $datos['cliente_nombre']);
+            $sqlVenta->bindParam(":email", $datos['cliente_email']);
+            $sqlVenta->bindParam(":telefono", $datos['cliente_telefono']);
+            $sqlVenta->bindParam(":direccion", $datos['cliente_direccion']);
+            $sqlVenta->bindParam(":metodo", $datos['metodo_pago']);
             $sqlVenta->execute();
 
             // Obtenemos el ID generado para esta venta

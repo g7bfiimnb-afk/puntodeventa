@@ -58,6 +58,19 @@ class VentaControlador extends ProductoModelo {
         $productos = (isset($_POST['productos_venta'])) ? json_decode($_POST['productos_venta'], true) : [];
         $total = (isset($_POST['total_venta'])) ? floatval($_POST['total_venta']) : 0;
         $usuario = $_SESSION['usuario_id'];
+        
+        // Información del cliente
+        $cliente_nombre = (isset($_POST['cliente_nombre'])) ? trim($_POST['cliente_nombre']) : '';
+        $cliente_id_usuario = (isset($_POST['cliente_id_usuario'])) ? trim($_POST['cliente_id_usuario']) : '';
+        $cliente_nombre_elegido = (isset($_POST['cliente_nombre_elegido'])) ? trim($_POST['cliente_nombre_elegido']) : '';
+        $cliente_ocupacion = (isset($_POST['cliente_ocupacion'])) ? trim($_POST['cliente_ocupacion']) : '';
+        $cliente_email = (isset($_POST['cliente_email'])) ? trim($_POST['cliente_email']) : '';
+        $cliente_telefono = (isset($_POST['cliente_telefono'])) ? trim($_POST['cliente_telefono']) : '';
+        $cliente_rfc = (isset($_POST['cliente_rfc'])) ? trim($_POST['cliente_rfc']) : '';
+        $cliente_situacion_fiscal = (isset($_POST['cliente_situacion_fiscal'])) ? trim($_POST['cliente_situacion_fiscal']) : '';
+        $cliente_direccion = (isset($_POST['cliente_direccion'])) ? trim($_POST['cliente_direccion']) : '';
+        $cliente_referencias = (isset($_POST['cliente_referencias'])) ? trim($_POST['cliente_referencias']) : '';
+        $metodo_pago = (isset($_POST['metodo_pago'])) ? trim($_POST['metodo_pago']) : 'efectivo';
 
         if(empty($productos)){
             return json_encode(["res" => "error", "msj" => "El carrito está vacío."]);
@@ -66,7 +79,18 @@ class VentaControlador extends ProductoModelo {
         $datosVenta = [
             "total" => $total,
             "usuario_id" => $usuario,
-            "productos" => $productos
+            "productos" => $productos,
+            "cliente_nombre" => $cliente_nombre,
+            "cliente_id_usuario" => $cliente_id_usuario,
+            "cliente_nombre_elegido" => $cliente_nombre_elegido,
+            "cliente_ocupacion" => $cliente_ocupacion,
+            "cliente_email" => $cliente_email,
+            "cliente_telefono" => $cliente_telefono,
+            "cliente_rfc" => $cliente_rfc,
+            "cliente_situacion_fiscal" => $cliente_situacion_fiscal,
+            "cliente_direccion" => $cliente_direccion,
+            "cliente_referencias" => $cliente_referencias,
+            "metodo_pago" => $metodo_pago
         ];
 
         $res = VentaModelo::guardar_venta_modelo($datosVenta);

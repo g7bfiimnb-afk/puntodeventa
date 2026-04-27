@@ -119,26 +119,10 @@ $productos = $query->fetchAll(PDO::FETCH_ASSOC);
                 </div>
                 <div class="modal-body bg-light border-top">
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <div class="form-group">
                                 <label class="font-weight-bold text-dark">Total a Pagar:</label>
                                 <h4 class="text-success font-weight-bold" id="total_carrito_resumen">$ 0.00</h4>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label class="font-weight-bold text-dark" for="monto_pagado">Billete/Dinero Recibido:</label>
-                                <input type="number" class="form-control form-control-lg" id="monto_pagado" placeholder="Ingresa el monto" min="0" step="0.01">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-12">
-                            <div class="alert alert-info p-3 mb-0">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="font-weight-bold">Cambio:</span>
-                                    <h5 class="mb-0 text-primary font-weight-bold" id="cambio_resultado">$ 0.00</h5>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -159,7 +143,7 @@ $productos = $query->fetchAll(PDO::FETCH_ASSOC);
             <div class="modal-content border-0 shadow-xl" style="border-radius: 15px;">
                 <div class="modal-header border-0 bg-gradient" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border-radius: 15px 15px 0 0;">
                     <h5 class="modal-title text-white font-weight-bold" id="modalConfirmLabel">
-                        <i class="fas fa-check-circle mr-2"></i>Confirmar Compra
+                        <i class="fas fa-receipt fa-2x mr-2"></i>Ticket de Compra
                     </h5>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -205,6 +189,154 @@ $productos = $query->fetchAll(PDO::FETCH_ASSOC);
                     </button>
                     <button type="button" class="btn btn-success btn-lg" id="btn_confirmar_compra">
                         <i class="fas fa-check mr-2"></i>Aceptar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE INFORMACIÓN PERSONAL Y MÉTODO DE PAGO -->
+    <div class="modal fade" id="modalInfoPersonalPago" tabindex="-1" role="dialog" aria-labelledby="modalInfoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-info text-white font-weight-bold">
+                    <h5 class="modal-title" id="modalInfoLabel">
+                        <i class="fas fa-user-edit mr-2"></i> Información del Cliente
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="form_info_personal_pago">
+                        <!-- Identificación del Usuario -->
+                        <div class="card mb-3 border-info">
+                            <div class="card-header bg-info text-white">
+                                <i class="fas fa-id-card mr-2"></i> Identificación del Usuario
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold" for="cliente_nombre">Nombre Completo *</label>
+                                            <input type="text" class="form-control form-control-lg" id="cliente_nombre" value="Victor Eduardo Lopez Soriano" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold" for="cliente_id_usuario">Nombre de Usuario (ID)</label>
+                                            <input type="text" class="form-control form-control-lg" id="cliente_id_usuario" value="HAEFCDBGH13783" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold" for="cliente_nombre_elegido">Nombre Elegido (Display Name)</label>
+                                            <input type="text" class="form-control form-control-lg" id="cliente_nombre_elegido" value="Victor Eduardo Lopez">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold" for="cliente_ocupacion">Ocupación</label>
+                                            <input type="text" class="form-control form-control-lg" id="cliente_ocupacion" value="Estudiante">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Datos de Facturación (Fiscales) -->
+                        <div class="card mb-3 border-secondary">
+                            <div class="card-header bg-secondary text-white">
+                                <i class="fas fa-file-invoice-dollar mr-2"></i> Datos de Facturación (Fiscales)
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold" for="cliente_rfc">RFC</label>
+                                            <input type="text" class="form-control form-control-lg" id="cliente_rfc" placeholder="Opcional o CURP">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold" for="cliente_situacion_fiscal">Situación Fiscal</label>
+                                            <input type="text" class="form-control form-control-lg" id="cliente_situacion_fiscal" placeholder="Opcional">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información de Contacto -->
+                        <div class="card mb-3 border-success">
+                            <div class="card-header bg-success text-white">
+                                <i class="fas fa-address-book mr-2"></i> Información de Contacto
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold" for="cliente_email">Correo Electrónico *</label>
+                                            <input type="email" class="form-control form-control-lg" id="cliente_email" value="el638883@gmail.com" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="font-weight-bold" for="cliente_telefono">Teléfono Celular *</label>
+                                            <input type="tel" class="form-control form-control-lg" id="cliente_telefono" value="+52 638883" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="font-weight-bold" for="cliente_direccion">Dirección del Domicilio</label>
+                                    <input type="text" class="form-control form-control-lg" id="cliente_direccion" placeholder="Calle, número, colonia, ciudad">
+                                </div>
+                                <div class="form-group">
+                                    <label class="font-weight-bold" for="cliente_referencias">Referencias del Domicilio</label>
+                                    <textarea class="form-control form-control-lg" id="cliente_referencias" rows="3" placeholder="Puntos de referencia, referencias adicionales, puertas, entre calles"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Método de Pago -->
+                        <div class="card border-success">
+                            <div class="card-header bg-success text-white">
+                                <i class="fas fa-credit-card mr-2"></i> Método de Pago
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label class="font-weight-bold">Selecciona tu método de pago *</label>
+                                    <div class="custom-control custom-radio mb-2">
+                                        <input type="radio" class="custom-control-input" id="pago_efectivo" name="metodo_pago" value="efectivo" checked>
+                                        <label class="custom-control-label" for="pago_efectivo">
+                                            <i class="fas fa-money-bill-wave text-success"></i> Efectivo
+                                        </label>
+                                    </div>
+                                    <div class="custom-control custom-radio mb-2">
+                                        <input type="radio" class="custom-control-input" id="pago_tarjeta" name="metodo_pago" value="tarjeta_credito">
+                                        <label class="custom-control-label" for="pago_tarjeta">
+                                            <i class="fas fa-credit-card text-primary"></i> Tarjeta de Crédito/Débito
+                                        </label>
+                                    </div>
+                                    <div class="custom-control custom-radio mb-2">
+                                        <input type="radio" class="custom-control-input" id="pago_transferencia" name="metodo_pago" value="transferencia">
+                                        <label class="custom-control-label" for="pago_transferencia">
+                                            <i class="fas fa-exchange-alt text-warning"></i> Transferencia Bancaria
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-2"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-success btn-lg" id="btn_finalizar_compra">
+                        <i class="fas fa-check-circle mr-2"></i> Finalizar Compra
                     </button>
                 </div>
             </div>
