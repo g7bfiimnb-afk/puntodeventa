@@ -6,7 +6,7 @@
     <title>Información del Cliente - Punto de Venta</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
-    <link rel="stylesheet" href="vistas/css/main.css">
+    <link rel="stylesheet" href="../css/main.css">
 </head>
 <body class="bg-light">
     <div class="container py-5">
@@ -197,7 +197,7 @@
                 }
 
                 $.ajax({
-                    url: 'ajax/VentaAjax.php',
+                    url: '../../ajax/VentaAjax.php',
                     method: 'POST',
                     data: {
                         productos_venta: JSON.stringify(carritoComprador),

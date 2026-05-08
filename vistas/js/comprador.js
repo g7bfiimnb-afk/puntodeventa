@@ -12,13 +12,15 @@ $(document).ready(function() {
     function cargarCatalogo() {
         let criterio = $('#ordenar_catalogo').val();
         let busqueda = $('#buscar_producto_input').val(); // Captura lo que escribiste en el input
+        let tabla_seleccionada = $('#filtro_categoria').val(); // Nuevo: Captura la tabla seleccionada
 
         $.ajax({
             url: 'ajax/CatalogoAjax.php',
             method: 'POST',
             data: { 
                 orden: criterio,
-                buscar: busqueda 
+                buscar: busqueda,
+                tabla_seleccionada: tabla_seleccionada // Enviamos la tabla seleccionada
             },
             beforeSend: function() {
                 $('#contenedor_productos_catalogo').css('opacity', '0.5');
@@ -33,6 +35,11 @@ $(document).ready(function() {
     $('#ordenar_catalogo').on('change', cargarCatalogo);
 
     // EVENTO CRÍTICO: Capturar el formulario de búsqueda para evitar redirección
+    // Nuevo: Evento al cambiar el select de categoría
+    $('#filtro_categoria').on('change', function() {
+        cargarCatalogo();
+    });
+
     $('#form_buscar_comprador').on('submit', function(e) {
         e.preventDefault(); // EVITA QUE TE MANDE AL INICIO
         cargarCatalogo();
@@ -42,14 +49,19 @@ $(document).ready(function() {
     // ========== 2. AGREGAR AL CARRITO ==========
     $(document).on('click', '.btn-agregar-carrito', function() {
         let id_producto = $(this).attr('data-id');
+        let tabla = $(this).attr('data-tabla');
         
         $.ajax({
             url: 'ajax/ProductoAjax.php',
             method: 'POST',
-            data: { id_traer: id_producto },
+            data: { 
+                id_traer: id_producto,
+                tabla: tabla // Enviamos la tabla para que el servidor busque en el lugar correcto
+            },
             dataType: 'json',
             success: function(producto) {
-                agregarAlCarritoComprador(producto);
+                // Pasamos el producto y su tabla de origen al carrito
+                agregarAlCarritoComprador(producto, tabla);
             }
         });
     });
@@ -110,15 +122,18 @@ $(document).ready(function() {
         localStorage.setItem('totalCompra', total.toString());
         
         // Abrir nueva ventana con el formulario de información personal
-        window.open('info_personal.php', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+        window.open('vistas/pantallas/info_personal.php', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
         
         // Cerrar el modal de confirmación
         $('#modalConfirmacionCompra').modal('hide');
     });
 });
 
-function agregarAlCarritoComprador(producto) {
-    let existe = carritoComprador.find(item => item.id === producto.id);
+function agregarAlCarritoComprador(producto, tabla) {
+    // Guardamos la tabla de origen en el objeto para diferenciar productos con el mismo ID en tablas distintas
+    producto.tabla_origen = tabla;
+
+    let existe = carritoComprador.find(item => item.id === producto.id && item.tabla_origen === tabla);
     
     if(existe) {
         existe.cantidad++;
@@ -155,11 +170,17 @@ function renderizarCarritoComprador() {
     
     carritoComprador.forEach((item, index) => {
         let subtotal = item.precio_venta * item.cantidad;
+        // Determinar la ruta de la imagen
+        let imgPath = (item.imagen && item.imagen !== 'default.png') ? 'vistas/img/productos/' + item.imagen : 'vistas/img/productos/default.png';
+        
         html += `
             <tr>
-                <td>
-                    <strong>${item.nombre}</strong><br>
-                    <small class="text-muted">Cod: ${item.codigo_barras}</small>
+                <td class="d-flex align-items-center">
+                    <img src="${imgPath}" style="width: 50px; height: 50px; object-fit: contain;" class="mr-3 rounded shadow-sm">
+                    <div>
+                        <strong>${item.nombre}</strong><br>
+                        <small class="text-muted">Cat: <span class="badge badge-light text-uppercase">${item.tabla_origen}</span></small>
+                    </div>
                 </td>
                 <td>$ ${parseFloat(item.precio_venta).toFixed(2)}</td>
                 <td>

@@ -24,11 +24,11 @@ if(isset($_POST['usuario_login'])){
     if($datos){
         // Normalizar rol para evitar valores vacíos o con mayúsculas/minúsculas.
         $rol = trim(strtolower($datos['rol'] ?? ''));
-        if(empty($rol)) {
-            // Fallback en caso de que el registro no tenga rol asignado.
-            // Ajusta la lógica según tu modelo de usuarios.
-            $rol = ($datos['usuario'] === 'cliente01') ? 'comprador' : 'admin';
-        }
+        
+        // Si el usuario es cliente01, forzamos rol comprador (en SQL es Empleado)
+        if($user === 'cliente01') $rol = 'comprador';
+        // Si es Administrador, lo estandarizamos a 'admin'
+        if($rol === 'administrador') $rol = 'admin';
 
         // 2. Llenamos la sesión con los datos del usuario
         $_SESSION['usuario_id'] = $datos['id'];

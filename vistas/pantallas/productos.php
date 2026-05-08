@@ -2,16 +2,39 @@
 // Conexión y consulta (esto ya lo debes tener arriba)
 require_once "configuracion/conexiones.php";
 $db = Conexion::conectar();
-$query = $db->query("SELECT * FROM productos ORDER BY nombre ASC");
+
+// Determinamos qué tabla visualizar (por defecto 'productos')
+$tabla_actual = (isset($_GET['cat'])) ? preg_replace('/[^a-zA-Z0-9_]/', '', $_GET['cat']) : 'productos';
+
+// Obtenemos la lista de tablas para el selector de categorías
+$stmtTablas = $db->query("SHOW TABLES FROM " . $db->query("SELECT DATABASE()")->fetchColumn()); // Corregido para especificar la base de datos
+$todasLasTablas = $stmtTablas->fetchAll(PDO::FETCH_COLUMN);
+$excluir = ['usuarios', 'ventas', 'detalle_ventas', 'proveedores'];
+$categorias = array_filter($todasLasTablas, function($t) use ($excluir) {
+    return !in_array($t, $excluir);
+});
+
+$query = $db->query("SELECT * FROM `$tabla_actual` ORDER BY nombre ASC");
 $productos = $query->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <div class="card shadow-sm border-0">
     <div class="card-header bg-primary text-white d-flex justify-content-between">
-        <h5 class="mb-0"><i class="fas fa-boxes"></i> Inventario de Productos</h5>
-        <button type="button" class="btn btn-light btn-sm" data-toggle="modal" data-target="#modalProducto" id="btnNuevoProducto">
-            <i class="fas fa-plus-circle"></i> Nuevo Producto
-        </button>
+        <h5 class="mb-0"><i class="fas fa-boxes"></i> Inventario: <span class="badge badge-warning"><?php echo $tabla_actual; ?></span></h5>
+        <div>
+            <div class="btn-group mr-2">
+                <button type="button" class="btn btn-light btn-sm dropdown-toggle" data-toggle="dropdown">
+                    <i class="fas fa-filter"></i> Ver Categoría
+                </button>
+                <div class="dropdown-menu">
+                    <?php foreach($categorias as $cat): ?>
+                        <a class="dropdown-item <?php echo ($cat == $tabla_actual) ? 'active' : ''; ?>" href="index.php?p=productos&cat=<?php echo $cat; ?>"><?php echo ucfirst($cat); ?></a>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <button type="button" class="btn btn-info btn-sm mr-1" data-toggle="modal" data-target="#modalCategoria"><i class="fas fa-folder-plus"></i> Categorías</button>
+            <button type="button" class="btn btn-light btn-sm" data-toggle="modal" data-target="#modalProducto" id="btnNuevoProducto"><i class="fas fa-plus-circle"></i> Nuevo Producto</button>
+        </div>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -61,6 +84,8 @@ $productos = $query->fetchAll(PDO::FETCH_ASSOC);
             
             <form id="form_producto_ajax" enctype="multipart/form-data">
                 <div class="modal-body">
+                    <!-- Campo oculto para saber a qué tabla enviar los datos -->
+                    <input type="hidden" name="tabla_destino" value="<?php echo $tabla_actual; ?>">
                     <input type="hidden" name="id_producto" id="id_producto">
 
                     <div class="row">
@@ -120,3 +145,64 @@ $productos = $query->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 </div>
+
+<!-- MODAL NUEVA CATEGORÍA (NUEVA TABLA) -->
+<div class="modal fade" id="modalCategoria" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+        <div class="modal-content border-0">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Crear Categoría</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Nombre de la Categoría</label>
+                    <input type="text" id="nombre_categoria_input" class="form-control" placeholder="Ej: Lacteos">
+                    <small class="text-muted">Se creará una nueva tabla en la BD.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-info btn-sm" id="btn_guardar_categoria">Crear Ahora</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Usamos una función que se autoejecute para esperar a jQuery
+(function waitJQ() {
+    if (window.jQuery) {
+        $(document).ready(function(){
+            // Lógica para crear la categoría (tabla)
+            $('#btn_guardar_categoria').on('click', function(){
+                let input = $('#nombre_categoria_input');
+                let nombre = input.val().trim();
+                
+                if(nombre == ""){ alert("Por favor, escribe un nombre para la categoría."); return; }
+
+                $.ajax({
+                    url: 'ajax/CategoriaAjax.php',
+                    method: 'POST',
+                    dataType: 'json',
+                    data: { nombre_categoria: nombre },
+                    success: function(r){
+                        if(r.res == "success"){
+                            alert(r.msj);
+                            location.reload(); 
+                        } else {
+                            alert("Error: " + r.msj);
+                        }
+                    },
+                    error: function(xhr){
+                        console.error("Error del servidor:", xhr.responseText);
+                        alert("No se pudo crear la categoría. Revisa la consola (F12) para más detalles.");
+                    }
+                });
+            });
+        });
+    } else {
+        setTimeout(waitJQ, 50); // Reintenta cada 50ms hasta que jQuery cargue
+    }
+})();
+</script>

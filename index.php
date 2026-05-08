@@ -1,9 +1,22 @@
 <?php 
 session_start(); 
-$vista = (isset($_SESSION['usuario_id'])) ? "dashboard" : "login";
+
+// Verificamos si hay una sesión activa para decidir qué vista mostrar
+if(!isset($_SESSION['usuario_id'])){
+    $vista = "login";
+} else {
+    $vista = "dashboard";
+}
 
 if($vista == "dashboard"){
-    $p = (isset($_GET['p'])) ? $_GET['p'] : "inicio";
+    // Si no se ha solicitado una página específica por URL
+    if(!isset($_GET['p'])){
+        // Redirigimos según el rol: Administrador va a 'inicio', otros (Empleado) a 'comprador'
+        $p = ($_SESSION['usuario_rol'] == 'admin') ? "inicio" : "comprador";
+    } else {
+        $p = $_GET['p'];
+    }
+
     // AGREGAMOS 'proveedores' y 'comprador' a la lista para que PHP permita cargar la vista
     $paginas_permitidas = ['inicio', 'productos', 'ventas', 'compras', 'reportes', 'proveedores', 'comprador'];
     if(!in_array($p, $paginas_permitidas)) $p = "inicio";
@@ -68,6 +81,9 @@ if($vista == "dashboard"){
                 </a>
                 <a href="index.php?p=reportes" class="list-group-item list-group-item-action <?php echo ($p=='reportes')?'active':''; ?>">
                     <i class="fas fa-chart-bar"></i> Reportes
+                </a>
+                <a href="index.php?p=comprador" class="list-group-item list-group-item-action <?php echo ($p=='comprador')?'active':''; ?>">
+                    <i class="fas fa-user-tag"></i> Comprador
                 </a>
                 <hr class="sidebar-divider">
                 <a href="ajax/Logout.php" class="list-group-item list-group-item-action text-danger">

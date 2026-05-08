@@ -148,8 +148,6 @@
                                 <tr>
                                     <th>Código</th>
                                     <th>Nombre</th>
-                                    <th>Categoría</th>
-                                    <th>Precio</th>
                                     <th>Stock</th>
                                 </tr>
                             </thead>
@@ -163,9 +161,7 @@
                                                 echo "<tr>
                                                     <td><code>{$p['codigo_barras']}</code></td>
                                                     <td>{$p['nombre']}</td>
-                                                    <td><span class='badge badge-info'>{$p['categoria']}</span></td>
-                                                    <td class='font-weight-bold'>$ ".number_format($p['precio_venta'], 2)."</td>
-                                                    <td><span class='badge badge-light border'>{$p['stock']}</span></td>
+                                                    <td class='fon{tocpan></td>
                                                 </tr>";
                                             }
                                         } else {

@@ -8,8 +8,43 @@ if($_SESSION['usuario_rol'] != 'comprador'){
 // 2. Conexión y Consulta Inicial (Por defecto A-Z)
 require_once "configuracion/conexiones.php";
 $db = Conexion::conectar();
-$query = $db->query("SELECT * FROM productos ORDER BY nombre ASC");
-$productos = $query->fetchAll(PDO::FETCH_ASSOC);
+
+// Obtenemos la lista de tablas que funcionan como categorías
+$stmtTablas = $db->query("SHOW TABLES FROM " . $db->query("SELECT DATABASE()")->fetchColumn()); // Corregido para especificar la base de datos
+$todasLasTablas = $stmtTablas->fetchAll(PDO::FETCH_COLUMN); // Obtiene solo los nombres de las tablas
+$excluir = ['usuarios', 'ventas', 'detalle_ventas', 'proveedores']; // Tablas que no son de productos
+$categorias = array_filter($todasLasTablas, function($t) use ($excluir) {
+    return !in_array($t, $excluir);
+});
+
+$productos = [];
+// Lógica para obtener las últimas 5 tablas creadas y cargar 2 productos de cada una
+$ultimasTablas = [];
+
+// Obtenemos las tablas ordenadas por CREATE_TIME DESC
+try {
+    $stmtTablasOrdenadas = $db->query("SELECT table_name, CREATE_TIME FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN ('" . implode("','", $categorias) . "') ORDER BY CREATE_TIME DESC LIMIT 5");
+    $ultimasTablas = $stmtTablasOrdenadas->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    // Si hay un error, tomamos las primeras 5 categorías como fallback
+    $ultimasTablas = array_slice($categorias, 0, 5);
+}
+
+// Carga inicial: 2 productos de cada una de las últimas 5 tablas
+foreach ($ultimasTablas as $tablaInfo) {
+    $tabla = is_array($tablaInfo) ? $tablaInfo['table_name'] : $tablaInfo;
+    try {
+        $query = $db->query("SELECT * FROM `$tabla` ORDER BY nombre ASC LIMIT 2");
+        $items = $query->fetchAll(PDO::FETCH_ASSOC);
+        // Agregamos el nombre de la tabla a cada producto para identificar su origen en el carrito
+        foreach($items as $k => $v){
+            $items[$k]['tabla_origen'] = $tabla;
+        }
+        $productos = array_merge($productos, $items);
+    } catch (PDOException $e) {
+        // Si la tabla no tiene la estructura de productos, la saltamos
+    }
+}
 ?>
 
 <div class="comprador-container bg-light min-vh-100">
@@ -47,9 +82,20 @@ $productos = $query->fetchAll(PDO::FETCH_ASSOC);
     <main class="container py-5">
         <div class="d-flex justify-content-between align-items-center mb-4 bg-white p-3 shadow-sm rounded">
             <h4 class="text-muted mb-0">Catálogo de Productos</h4>
+            <div class="form-group mb-0 mr-3"> <!-- Usamos form-group para mejor espaciado y mb-0 para quitar margen inferior -->
+                <label for="filtro_categoria" class="mr-2 font-weight-bold text-primary"><i class="fas fa-th-large"></i> Categoría:</label>
+                <select class="form-control form-control-sm border-primary shadow-sm custom-select" id="filtro_categoria" style="border-radius: 20px; padding-right: 30px;">
+                    <option value="all" selected>🛒 Todas las Categorías</option>
+                    <?php foreach($categorias as $cat_tabla): ?>
+                        <option value="<?php echo $cat_tabla; ?>">
+                            <?php echo ucfirst(str_replace('_', ' ', $cat_tabla)); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
             <div class="form-inline">
                 <label class="mr-2 font-weight-bold">Ordenar por:</label>
-                <select class="form-control form-control-sm" id="ordenar_catalogo">
+                <select class="form-control form-control-sm shadow-sm" id="ordenar_catalogo" style="border-radius: 20px;">
                     <option value="nombre_asc">Nombre (A-Z)</option>
                     <option value="nombre_desc">Nombre (Z-A)</option>
                     <option value="precio_min">Precio (Más bajo)</option>
@@ -63,19 +109,19 @@ $productos = $query->fetchAll(PDO::FETCH_ASSOC);
             <?php if(count($productos) > 0): ?>
                 <?php foreach($productos as $prod): ?>
                     <div class="col-md-3 col-sm-6 mb-4">
-                        <div class="card h-100 shadow-sm border-0 card-producto">
+                        <div class="card h-100 shadow-sm border-0 card-producto" style="border-radius: 15px; transition: transform 0.3s;">
                             <div class="card-body text-center d-flex flex-column align-items-center">
                                 <?php 
                                     $foto = (!empty($prod['imagen'])) ? "vistas/img/productos/" . $prod['imagen'] : "vistas/img/productos/default.png";
                                     $ruta_mostrar = (file_exists($foto)) ? $foto : "vistas/img/productos/default.png";
                                 ?>
-                                <img src="<?php echo $ruta_mostrar; ?>" class="img-fluid mb-3" style="height: 150px; width: 100%; object-fit: contain;">
+                                <img src="<?php echo $ruta_mostrar; ?>" class="img-fluid mb-3 rounded" style="height: 160px; width: 100%; object-fit: contain;">
                                 
-                                <p class="card-title font-weight-bold text-dark mb-1"><?php echo $prod['nombre']; ?></p>
-                                <p class="text-muted small mb-2">Existencia: <?php echo $prod['stock']; ?></p>
+                                <h6 class="card-title font-weight-bold text-dark mb-1"><?php echo $prod['nombre']; ?></h6>
+                                <span class="badge badge-light text-muted mb-2">Stock: <?php echo $prod['stock']; ?></span>
                                 <p class="h5 text-success mb-2 font-weight-bold">$ <?php echo number_format($prod['precio_venta'], 2); ?></p>
                                 
-                                <button class="btn btn-warning btn-block btn-sm mt-auto text-dark font-weight-bold btn-agregar-carrito" data-id="<?php echo $prod['id']; ?>">
+                                <button class="btn btn-warning btn-block btn-sm mt-auto text-dark font-weight-bold btn-agregar-carrito shadow-sm" style="border-radius: 10px;" data-id="<?php echo $prod['id']; ?>" data-tabla="<?php echo $prod['tabla_origen']; ?>">
                                     <i class="fas fa-cart-plus"></i> Agregar
                                 </button>
                             </div>

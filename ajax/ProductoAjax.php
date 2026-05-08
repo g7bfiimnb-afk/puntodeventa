@@ -6,7 +6,10 @@ header('Content-Type: application/json'); // Asegurar respuesta JSON limpia
 // ACCIÓN: TRAER DATOS PARA EDITAR
 if(isset($_POST['id_traer'])){
     $db = Conexion::conectar();
-    $sql = $db->prepare("SELECT * FROM productos WHERE id = ?");
+    // Sanitizamos la tabla destino
+    $tabla = preg_replace('/[^a-zA-Z0-9_]/', '', $_POST['tabla'] ?? 'productos');
+    
+    $sql = $db->prepare("SELECT * FROM `$tabla` WHERE id = ?");
     $sql->execute([$_POST['id_traer']]);
     $datos = $sql->fetch(PDO::FETCH_ASSOC);
     echo json_encode($datos);
@@ -18,6 +21,7 @@ if(isset($_POST['codigo_prod'])){
     $db = Conexion::conectar();
     
     // Recibir datos normales
+    $tabla = preg_replace('/[^a-zA-Z0-9_]/', '', $_POST['tabla_destino'] ?? 'productos');
     $id = $_POST['id_producto']; // Puede venir vacío si es nuevo
     $codigo = $_POST['codigo_prod'];
     $nombre = $_POST['nombre_prod'];
@@ -64,7 +68,7 @@ if(isset($_POST['codigo_prod'])){
     } else {
         // Si es editar y no subió foto nueva, debemos mantener la foto que ya tenía
         if(!empty($id)){
-            $sql_foto = $db->prepare("SELECT imagen FROM productos WHERE id = ?");
+            $sql_foto = $db->prepare("SELECT imagen FROM `$tabla` WHERE id = ?");
             $sql_foto->execute([$id]);
             $res_foto = $sql_foto->fetch();
             $nombre_foto_bd = $res_foto['imagen'];
@@ -75,7 +79,7 @@ if(isset($_POST['codigo_prod'])){
     // --- LÓGICA DE BASE DE DATOS (INSERT O UPDATE) ---
     if(empty($id)){
         // ES NUEVO
-        $sql = $db->prepare("INSERT INTO productos (codigo_barras, nombre, precio_compra, precio_venta, stock, imagen) VALUES (?,?,?,?,?,?)");
+        $sql = $db->prepare("INSERT INTO `$tabla` (codigo_barras, nombre, precio_compra, precio_venta, stock, imagen) VALUES (?,?,?,?,?,?)");
         if($sql->execute([$codigo, $nombre, $p_compra, $p_venta, $stock, $nombre_foto_bd])){
             echo json_encode(["res" => "success", "msj" => "¡Producto creado con éxito!"]);
         } else {
@@ -83,7 +87,7 @@ if(isset($_POST['codigo_prod'])){
         }
     } else {
         // ES EDITAR
-        $sql = $db->prepare("UPDATE productos SET codigo_barras=?, nombre=?, precio_compra=?, precio_venta=?, stock=?, imagen=? WHERE id=?");
+        $sql = $db->prepare("UPDATE `$tabla` SET codigo_barras=?, nombre=?, precio_compra=?, precio_venta=?, stock=?, imagen=? WHERE id=?");
         if($sql->execute([$codigo, $nombre, $p_compra, $p_venta, $stock, $nombre_foto_bd, $id])){
             echo json_encode(["res" => "success", "msj" => "¡Producto actualizado con éxito!"]);
         } else {
